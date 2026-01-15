@@ -86,7 +86,7 @@ export default function NewProjectPage() {
     <div className="max-w-2xl mx-auto">
       <Link
         href="/dashboard"
-        className="inline-flex items-center text-sm text-muted-foreground hover:text-foreground mb-6"
+        className="inline-flex items-center text-sm text-gray-500 hover:text-gray-900 mb-4 md:mb-6"
       >
         <ArrowLeft className="h-4 w-4 mr-2" />
         Back to Projects
@@ -194,15 +194,15 @@ export default function NewProjectPage() {
               </p>
             </div>
 
-            <div className="flex gap-4">
-              <Button type="submit" disabled={loading}>
-                {loading ? 'Creating...' : 'Create Project'}
-              </Button>
-              <Link href="/dashboard">
-                <Button type="button" variant="outline">
+            <div className="flex flex-col-reverse sm:flex-row gap-3 sm:gap-4">
+              <Link href="/dashboard" className="w-full sm:w-auto">
+                <Button type="button" variant="outline" className="w-full sm:w-auto">
                   Cancel
                 </Button>
               </Link>
+              <Button type="submit" disabled={loading} className="w-full sm:w-auto">
+                {loading ? 'Creating...' : 'Create Project'}
+              </Button>
             </div>
           </form>
         </CardContent>

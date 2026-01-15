@@ -231,36 +231,36 @@ ${selectedMessage.reasoning}${repliesText}`
   }
 
   return (
-    <div className="space-y-6">
+    <div className="space-y-4 md:space-y-6">
       {/* Header */}
-      <div className="flex items-start justify-between">
-        <div>
-          <Link
-            href="/dashboard"
-            className="inline-flex items-center text-sm text-muted-foreground hover:text-foreground mb-2"
-          >
-            <ArrowLeft className="h-4 w-4 mr-2" />
-            Back to Projects
-          </Link>
-          <h1 className="text-3xl font-bold">{project.name}</h1>
-        </div>
-        <div className="flex gap-2">
-          <Link href={`/dashboard/projects/${id}/settings`}>
-            <Button variant="outline" size="sm">
-              <Settings className="h-4 w-4 mr-2" />
-              Settings
+      <div className="space-y-3">
+        <Link
+          href="/dashboard"
+          className="inline-flex items-center text-sm text-gray-500 hover:text-gray-900"
+        >
+          <ArrowLeft className="h-4 w-4 mr-2" />
+          Back to Projects
+        </Link>
+        <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
+          <h1 className="text-2xl md:text-3xl font-bold">{project.name}</h1>
+          <div className="flex gap-2">
+            <Link href={`/dashboard/projects/${id}/settings`} className="flex-1 sm:flex-none">
+              <Button variant="outline" size="sm" className="w-full sm:w-auto">
+                <Settings className="h-4 w-4 mr-2" />
+                Settings
+              </Button>
+            </Link>
+            <Button variant="destructive" size="sm" onClick={handleDeleteProject} className="flex-1 sm:flex-none">
+              <Trash2 className="h-4 w-4 mr-2" />
+              Delete
             </Button>
-          </Link>
-          <Button variant="destructive" size="sm" onClick={handleDeleteProject}>
-            <Trash2 className="h-4 w-4 mr-2" />
-            Delete
-          </Button>
+          </div>
         </div>
       </div>
 
-      <div className="grid gap-6 lg:grid-cols-3">
+      <div className="grid gap-4 md:gap-6 lg:grid-cols-3">
         {/* Main Content */}
-        <div className="lg:col-span-2 space-y-6">
+        <div className="lg:col-span-2 space-y-4 md:space-y-6 order-2 lg:order-1">
           {/* Message Analysis Form */}
           <Card>
             <CardHeader>
@@ -401,8 +401,8 @@ Example: 'Hey, quick question - can you also add a blog section to the website? 
           {/* Message History */}
           {project.messages.length > 0 && (
             <Card>
-              <CardHeader>
-                <div className="flex items-center justify-between">
+              <CardHeader className="space-y-3">
+                <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
                   <div>
                     <CardTitle>Message History</CardTitle>
                     <CardDescription>
@@ -414,6 +414,7 @@ Example: 'Hey, quick question - can you also add a blog section to the website? 
                       variant="outline"
                       size="sm"
                       onClick={() => handleExport('csv')}
+                      className="flex-1 sm:flex-none"
                     >
                       <Download className="h-4 w-4 mr-1" />
                       CSV
@@ -422,6 +423,7 @@ Example: 'Hey, quick question - can you also add a blog section to the website? 
                       variant="outline"
                       size="sm"
                       onClick={() => handleExport('json')}
+                      className="flex-1 sm:flex-none"
                     >
                       <Download className="h-4 w-4 mr-1" />
                       JSON
@@ -460,7 +462,7 @@ Example: 'Hey, quick question - can you also add a blog section to the website? 
         </div>
 
         {/* Sidebar - Project Info */}
-        <div className="space-y-6">
+        <div className="space-y-4 md:space-y-6 order-1 lg:order-2">
           <Card>
             <CardHeader>
               <CardTitle className="text-base">Project Scope</CardTitle>
