@@ -22,20 +22,21 @@ export default function TemplatesPage() {
     : messageTemplates.filter(t => t.category === selectedCategory)
 
   return (
-    <div className="space-y-6">
+    <div className="space-y-4 md:space-y-6">
       <div>
-        <h1 className="text-3xl font-bold">Message Templates</h1>
-        <p className="text-muted-foreground mt-1">
+        <h1 className="text-2xl md:text-3xl font-bold">Message Templates</h1>
+        <p className="text-gray-500 mt-1 text-sm md:text-base">
           Pre-built templates for scope definitions and client replies
         </p>
       </div>
 
       {/* Category Filter */}
-      <div className="flex flex-wrap gap-2">
+      <div className="flex flex-wrap gap-2 overflow-x-auto pb-2">
         <Button
           variant={selectedCategory === 'all' ? 'default' : 'outline'}
           size="sm"
           onClick={() => setSelectedCategory('all')}
+          className="whitespace-nowrap"
         >
           All Templates
         </Button>
@@ -45,6 +46,7 @@ export default function TemplatesPage() {
             variant={selectedCategory === category ? 'default' : 'outline'}
             size="sm"
             onClick={() => setSelectedCategory(category)}
+            className="whitespace-nowrap"
           >
             {category}
           </Button>
@@ -52,7 +54,7 @@ export default function TemplatesPage() {
       </div>
 
       {/* Templates Grid */}
-      <div className="grid gap-4 md:grid-cols-2">
+      <div className="grid gap-4 sm:grid-cols-2">
         {filteredTemplates.map((template) => (
           <Card key={template.id}>
             <CardHeader className="pb-3">

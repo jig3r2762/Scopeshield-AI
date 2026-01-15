@@ -57,16 +57,16 @@ export default function RegisterPage() {
   }
 
   return (
-    <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-blue-50 to-indigo-100 p-4">
+    <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-blue-50 to-indigo-100 px-4 py-8">
       <Card className="w-full max-w-md">
         <CardHeader className="text-center">
           <div className="flex justify-center mb-4">
-            <div className="p-3 bg-primary rounded-full">
-              <Shield className="h-8 w-8 text-primary-foreground" />
+            <div className="p-2.5 md:p-3 bg-primary rounded-full">
+              <Shield className="h-6 w-6 md:h-8 md:w-8 text-white" />
             </div>
           </div>
-          <CardTitle className="text-2xl">Create an account</CardTitle>
-          <CardDescription>Get started with ScopeShield AI</CardDescription>
+          <CardTitle className="text-xl md:text-2xl">Create an account</CardTitle>
+          <CardDescription className="text-sm">Get started with ScopeShield AI</CardDescription>
         </CardHeader>
         <CardContent>
           <form onSubmit={handleSubmit} className="space-y-4">

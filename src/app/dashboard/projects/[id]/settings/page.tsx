@@ -124,7 +124,7 @@ export default function ProjectSettingsPage({ params }: { params: Promise<{ id: 
     <div className="max-w-2xl mx-auto">
       <Link
         href={`/dashboard/projects/${id}`}
-        className="inline-flex items-center text-sm text-muted-foreground hover:text-foreground mb-6"
+        className="inline-flex items-center text-sm text-gray-500 hover:text-gray-900 mb-4 md:mb-6"
       >
         <ArrowLeft className="h-4 w-4 mr-2" />
         Back to Project
@@ -182,9 +182,9 @@ export default function ProjectSettingsPage({ params }: { params: Promise<{ id: 
             </div>
 
             {/* Revision Tracking */}
-            <div className="border rounded-lg p-4 space-y-4 bg-muted/50">
+            <div className="border rounded-lg p-4 space-y-4 bg-gray-50">
               <h3 className="font-medium">Revision Tracking</h3>
-              <div className="grid grid-cols-2 gap-4">
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                 <div className="space-y-2">
                   <Label htmlFor="revisionCount">Revisions Used</Label>
                   <Input
@@ -206,13 +206,18 @@ export default function ProjectSettingsPage({ params }: { params: Promise<{ id: 
                   />
                 </div>
               </div>
-              <p className="text-xs text-muted-foreground">
+              <p className="text-xs text-gray-500">
                 Track revision rounds to help identify when clients exceed included revisions.
               </p>
             </div>
 
-            <div className="flex gap-4">
-              <Button type="submit" disabled={saving}>
+            <div className="flex flex-col-reverse sm:flex-row gap-3 sm:gap-4">
+              <Link href={`/dashboard/projects/${id}`} className="w-full sm:w-auto">
+                <Button type="button" variant="outline" className="w-full sm:w-auto">
+                  Cancel
+                </Button>
+              </Link>
+              <Button type="submit" disabled={saving} className="w-full sm:w-auto">
                 {saving ? (
                   <>
                     <Loader2 className="h-4 w-4 mr-2 animate-spin" />
@@ -222,11 +227,6 @@ export default function ProjectSettingsPage({ params }: { params: Promise<{ id: 
                   'Save Changes'
                 )}
               </Button>
-              <Link href={`/dashboard/projects/${id}`}>
-                <Button type="button" variant="outline">
-                  Cancel
-                </Button>
-              </Link>
             </div>
           </form>
         </CardContent>
