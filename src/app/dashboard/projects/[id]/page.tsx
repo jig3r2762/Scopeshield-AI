@@ -462,101 +462,106 @@ Example: 'Hey, quick question - can you also add a blog section to the website? 
         </div>
 
         {/* Sidebar - Project Info */}
-        <div className="space-y-4 md:space-y-6 order-1 lg:order-2">
-          <Card>
-            <CardHeader>
-              <CardTitle className="text-base">Project Scope</CardTitle>
-            </CardHeader>
-            <CardContent>
-              <p className="text-sm whitespace-pre-wrap">{project.scopeSummary}</p>
-            </CardContent>
-          </Card>
-
-          {project.outOfScopeItems && (
-            <Card>
-              <CardHeader>
-                <CardTitle className="text-base">Out of Scope</CardTitle>
+        <div className="space-y-4 order-1 lg:order-2">
+          {/* On mobile, show as horizontal scroll or grid */}
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-1 gap-4">
+            <Card className="overflow-hidden">
+              <CardHeader className="pb-2">
+                <CardTitle className="text-sm font-semibold">Project Scope</CardTitle>
               </CardHeader>
               <CardContent>
-                <p className="text-sm whitespace-pre-wrap">{project.outOfScopeItems}</p>
+                <p className="text-sm text-gray-600 whitespace-pre-wrap break-words">{project.scopeSummary}</p>
               </CardContent>
             </Card>
-          )}
 
-          {project.contractPdfUrl && (
-            <Card>
-              <CardHeader>
-                <CardTitle className="text-base">Contract</CardTitle>
+            {project.outOfScopeItems && (
+              <Card className="overflow-hidden">
+                <CardHeader className="pb-2">
+                  <CardTitle className="text-sm font-semibold">Out of Scope</CardTitle>
+                </CardHeader>
+                <CardContent>
+                  <p className="text-sm text-gray-600 whitespace-pre-wrap break-words">{project.outOfScopeItems}</p>
+                </CardContent>
+              </Card>
+            )}
+
+            {project.contractPdfUrl && (
+              <Card className="overflow-hidden">
+                <CardHeader className="pb-2">
+                  <CardTitle className="text-sm font-semibold">Contract</CardTitle>
+                </CardHeader>
+                <CardContent>
+                  <a
+                    href={project.contractPdfUrl}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="inline-flex items-center text-sm text-primary hover:underline"
+                  >
+                    <FileText className="h-4 w-4 mr-2 shrink-0" />
+                    <span className="truncate">View Contract PDF</span>
+                  </a>
+                </CardContent>
+              </Card>
+            )}
+
+            {/* Revision Counter */}
+            <Card className="overflow-hidden">
+              <CardHeader className="pb-2">
+                <CardTitle className="text-sm font-semibold flex items-center gap-2">
+                  <RotateCcw className="h-4 w-4 shrink-0" />
+                  <span>Revisions</span>
+                </CardTitle>
               </CardHeader>
               <CardContent>
-                <a
-                  href={project.contractPdfUrl}
-                  target="_blank"
-                  rel="noopener noreferrer"
-                  className="inline-flex items-center text-sm text-primary hover:underline"
-                >
-                  <FileText className="h-4 w-4 mr-2" />
-                  View Contract PDF
-                </a>
+                <div className="flex items-center justify-between gap-2">
+                  <span className="text-xl md:text-2xl font-bold">
+                    {project.revisionCount ?? 0} / {project.maxRevisions ?? 3}
+                  </span>
+                  <Badge
+                    variant={(project.revisionCount ?? 0) >= (project.maxRevisions ?? 3) ? 'danger' : 'secondary'}
+                    className="shrink-0 text-xs"
+                  >
+                    {(project.revisionCount ?? 0) >= (project.maxRevisions ?? 3) ? 'Limit' : 'Active'}
+                  </Badge>
+                </div>
+                {(project.revisionCount ?? 0) >= (project.maxRevisions ?? 3) && (
+                  <p className="text-xs text-gray-500 mt-2">
+                    Additional revisions should be billed separately.
+                  </p>
+                )}
               </CardContent>
             </Card>
-          )}
 
-          {/* Revision Counter */}
-          <Card>
-            <CardHeader className="pb-2">
-              <CardTitle className="text-base flex items-center gap-2">
-                <RotateCcw className="h-4 w-4" />
-                Revisions
-              </CardTitle>
-            </CardHeader>
-            <CardContent>
-              <div className="flex items-center justify-between">
-                <span className="text-2xl font-bold">
-                  {project.revisionCount ?? 0} / {project.maxRevisions ?? 3}
-                </span>
-                <Badge
-                  variant={(project.revisionCount ?? 0) >= (project.maxRevisions ?? 3) ? 'danger' : 'secondary'}
-                >
-                  {(project.revisionCount ?? 0) >= (project.maxRevisions ?? 3) ? 'Limit Reached' : 'Active'}
-                </Badge>
-              </div>
-              {(project.revisionCount ?? 0) >= (project.maxRevisions ?? 3) && (
-                <p className="text-xs text-muted-foreground mt-2">
-                  Additional revisions should be billed separately.
+            {/* Client Risk Score */}
+            <Card className="overflow-hidden">
+              <CardHeader className="pb-2">
+                <CardTitle className="text-sm font-semibold flex items-center gap-2">
+                  <TrendingUp className="h-4 w-4 shrink-0" />
+                  <span>Client Risk</span>
+                </CardTitle>
+              </CardHeader>
+              <CardContent>
+                <div className="flex items-center justify-between gap-2">
+                  <span className="text-xl md:text-2xl font-bold">{project.clientRiskScore ?? 0}</span>
+                  <Badge
+                    variant={
+                      (project.clientRiskScore ?? 0) >= 70 ? 'danger' :
+                      (project.clientRiskScore ?? 0) >= 40 ? 'warning' :
+                      'success'
+                    }
+                    className="shrink-0 text-xs"
+                  >
+                    {(project.clientRiskScore ?? 0) >= 70 ? 'High' :
+                     (project.clientRiskScore ?? 0) >= 40 ? 'Medium' :
+                     'Low'}
+                  </Badge>
+                </div>
+                <p className="text-xs text-gray-500 mt-2">
+                  Based on {project.messages.length} analyzed messages
                 </p>
-              )}
-            </CardContent>
-          </Card>
-
-          {/* Client Risk Score */}
-          <Card>
-            <CardHeader className="pb-2">
-              <CardTitle className="text-base flex items-center gap-2">
-                <TrendingUp className="h-4 w-4" />
-                Client Risk Score
-              </CardTitle>
-            </CardHeader>
-            <CardContent>
-              <div className="flex items-center justify-between">
-                <span className="text-2xl font-bold">{project.clientRiskScore ?? 0}</span>
-                <Badge
-                  variant={
-                    (project.clientRiskScore ?? 0) >= 70 ? 'danger' :
-                    (project.clientRiskScore ?? 0) >= 40 ? 'warning' :
-                    'success'
-                  }
-                >
-                  {(project.clientRiskScore ?? 0) >= 70 ? 'High Risk' :
-                   (project.clientRiskScore ?? 0) >= 40 ? 'Medium Risk' :
-                   'Low Risk'}
-                </Badge>
-              </div>
-              <p className="text-xs text-muted-foreground mt-2">
-                Based on {project.messages.length} analyzed messages
-              </p>
-            </CardContent>
-          </Card>
+              </CardContent>
+            </Card>
+          </div>
         </div>
       </div>
     </div>
