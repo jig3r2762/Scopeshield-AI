@@ -1,0 +1,160 @@
+/* ScopeShield AI - Content Script Styles */
+
+/* Main button styles */
+.scopeshield-btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 8px 14px;
+  background: linear-gradient(135deg, #0f172a 0%, #1e293b 100%);
+  color: #ffffff;
+  border: none;
+  border-radius: 6px;
+  font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+  font-size: 13px;
+  font-weight: 500;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+}
+
+.scopeshield-btn:hover {
+  background: linear-gradient(135deg, #1e293b 0%, #334155 100%);
+  box-shadow: 0 2px 6px rgba(0, 0, 0, 0.15);
+  transform: translateY(-1px);
+}
+
+.scopeshield-btn:active {
+  transform: translateY(0);
+}
+
+.scopeshield-btn:disabled {
+  opacity: 0.7;
+  cursor: not-allowed;
+  transform: none;
+}
+
+.scopeshield-btn svg {
+  flex-shrink: 0;
+}
+
+/* Floating button */
+#scopeshield-floating-btn {
+  position: fixed;
+  bottom: 24px;
+  right: 24px;
+  z-index: 999999;
+}
+
+.scopeshield-btn-floating {
+  padding: 12px 18px;
+  border-radius: 50px;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.2);
+}
+
+.scopeshield-btn-floating:hover {
+  box-shadow: 0 6px 16px rgba(0, 0, 0, 0.25);
+}
+
+/* Toolbar container */
+.scopeshield-toolbar-container {
+  display: inline-flex;
+  margin-left: 8px;
+}
+
+/* Spinner animation */
+.scopeshield-spinner {
+  animation: scopeshield-spin 1s linear infinite;
+}
+
+@keyframes scopeshield-spin {
+  from { transform: rotate(0deg); }
+  to { transform: rotate(360deg); }
+}
+
+/* Notification toast */
+.scopeshield-notification {
+  position: fixed;
+  bottom: 80px;
+  right: 24px;
+  padding: 14px 20px;
+  background: #0f172a;
+  color: #ffffff;
+  border-radius: 8px;
+  font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+  font-size: 14px;
+  font-weight: 500;
+  z-index: 1000000;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.2);
+  animation: scopeshield-slideIn 0.3s ease;
+}
+
+.scopeshield-notification-success {
+  background: #059669;
+}
+
+.scopeshield-notification-error {
+  background: #dc2626;
+}
+
+.scopeshield-notification-hide {
+  animation: scopeshield-slideOut 0.3s ease forwards;
+}
+
+@keyframes scopeshield-slideIn {
+  from {
+    opacity: 0;
+    transform: translateX(20px);
+  }
+  to {
+    opacity: 1;
+    transform: translateX(0);
+  }
+}
+
+@keyframes scopeshield-slideOut {
+  from {
+    opacity: 1;
+    transform: translateX(0);
+  }
+  to {
+    opacity: 0;
+    transform: translateX(20px);
+  }
+}
+
+/* Quick analyze popup */
+.scopeshield-quick-popup {
+  position: absolute;
+  z-index: 1000000;
+  background: #ffffff;
+  border-radius: 8px;
+  box-shadow: 0 4px 16px rgba(0, 0, 0, 0.15);
+  overflow: hidden;
+  animation: scopeshield-fadeIn 0.15s ease;
+}
+
+.scopeshield-quick-btn {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 10px 16px;
+  background: #ffffff;
+  color: #0f172a;
+  border: none;
+  font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+  font-size: 13px;
+  font-weight: 500;
+  cursor: pointer;
+  transition: background 0.15s ease;
+  white-space: nowrap;
+}
+
+.scopeshield-quick-btn:hover {
+  background: #f1f5f9;
+}
+
+@keyframes scopeshield-fadeIn {
+  from { opacity: 0; transform: scale(0.95); }
+  to { opacity: 1; transform: scale(1); }
+}

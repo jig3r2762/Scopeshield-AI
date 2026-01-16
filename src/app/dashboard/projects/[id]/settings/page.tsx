@@ -17,6 +17,7 @@ interface Project {
   outOfScopeItems: string | null
   revisionCount: number
   maxRevisions: number
+  clientEmail: string | null
 }
 
 export default function ProjectSettingsPage({ params }: { params: Promise<{ id: string }> }) {
@@ -33,6 +34,7 @@ export default function ProjectSettingsPage({ params }: { params: Promise<{ id: 
   const [outOfScopeItems, setOutOfScopeItems] = useState('')
   const [revisionCount, setRevisionCount] = useState(0)
   const [maxRevisions, setMaxRevisions] = useState(3)
+  const [clientEmail, setClientEmail] = useState('')
 
   useEffect(() => {
     fetchProject()
@@ -55,6 +57,7 @@ export default function ProjectSettingsPage({ params }: { params: Promise<{ id: 
       setOutOfScopeItems(data.outOfScopeItems || '')
       setRevisionCount(data.revisionCount || 0)
       setMaxRevisions(data.maxRevisions || 3)
+      setClientEmail(data.clientEmail || '')
     } catch {
       setError('Failed to load project')
     } finally {
@@ -83,7 +86,8 @@ export default function ProjectSettingsPage({ params }: { params: Promise<{ id: 
           scopeSummary: scopeSummary.trim(),
           outOfScopeItems: outOfScopeItems.trim() || null,
           revisionCount,
-          maxRevisions
+          maxRevisions,
+          clientEmail: clientEmail.trim().toLowerCase() || null
         })
       })
 
@@ -208,6 +212,29 @@ export default function ProjectSettingsPage({ params }: { params: Promise<{ id: 
               </div>
               <p className="text-xs text-gray-500">
                 Track revision rounds to help identify when clients exceed included revisions.
+              </p>
+            </div>
+
+            {/* Browser Extension Integration */}
+            <div className="border rounded-lg p-4 space-y-4 bg-blue-50">
+              <h3 className="font-medium flex items-center gap-2">
+                <svg className="h-4 w-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                  <path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/>
+                </svg>
+                Browser Extension
+              </h3>
+              <div className="space-y-2">
+                <Label htmlFor="clientEmail">Client Email Address</Label>
+                <Input
+                  id="clientEmail"
+                  type="email"
+                  placeholder="client@example.com"
+                  value={clientEmail}
+                  onChange={(e) => setClientEmail(e.target.value)}
+                />
+              </div>
+              <p className="text-xs text-gray-600">
+                When you analyze emails from this address using the browser extension, this project&apos;s scope will be used automatically.
               </p>
             </div>
 

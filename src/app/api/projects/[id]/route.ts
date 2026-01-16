@@ -69,7 +69,8 @@ export async function PUT(
       outOfScopeItems: body.outOfScopeItems ?? project.outOfScopeItems,
       revisionCount: body.revisionCount ?? project.revisionCount,
       maxRevisions: body.maxRevisions ?? project.maxRevisions,
-      clientRiskScore: body.clientRiskScore ?? project.clientRiskScore
+      clientRiskScore: body.clientRiskScore ?? project.clientRiskScore,
+      clientEmail: body.clientEmail !== undefined ? body.clientEmail : project.clientEmail
     }
   })
 

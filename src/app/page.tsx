@@ -159,9 +159,14 @@ export default async function Home() {
             <Shield className="h-5 w-5 text-primary" />
             <span className="font-semibold">ScopeShield AI</span>
           </div>
-          <p className="text-sm text-gray-500 text-center md:text-left">
-            Risk assessment tool for communication. Not legal advice.
-          </p>
+          <div className="flex items-center gap-6">
+            <Link href="/privacy" className="text-sm text-gray-500 hover:text-primary">
+              Privacy Policy
+            </Link>
+            <p className="text-sm text-gray-500 text-center md:text-left">
+              Risk assessment tool for communication. Not legal advice.
+            </p>
+          </div>
         </div>
       </footer>
     </div>
