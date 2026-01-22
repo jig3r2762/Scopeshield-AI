@@ -1,6 +1,6 @@
 // ScopeShield AI - Side Panel Script
 
-const API_BASE_URL = 'http://localhost:3000';
+const API_BASE_URL = 'https://scopeshield-ai.vercel.app';
 
 document.addEventListener('DOMContentLoaded', async () => {
   await checkAuthAndLoadData();

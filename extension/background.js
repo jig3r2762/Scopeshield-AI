@@ -1,6 +1,6 @@
 // ScopeShield AI Background Service Worker
 
-const API_BASE_URL = 'http://localhost:3000'; // Change to production URL when deployed
+const API_BASE_URL = 'https://scopeshield-ai.vercel.app';
 
 // Listen for messages from content scripts
 chrome.runtime.onMessage.addListener((request, sender, sendResponse) => {
@@ -125,9 +125,3 @@ async function handleCheckAuth() {
   }
 }
 
-// Update API URL from storage if set
-chrome.storage.sync.get(['apiBaseUrl'], ({ apiBaseUrl }) => {
-  if (apiBaseUrl) {
-    // This would be used in production
-  }
-});

@@ -1,6 +1,6 @@
 // ScopeShield AI - Popup Script
 
-const API_BASE_URL = 'http://localhost:3000'; // Change for production
+const API_BASE_URL = 'https://scopeshield-ai.vercel.app';
 
 document.addEventListener('DOMContentLoaded', async () => {
   // Check authentication status

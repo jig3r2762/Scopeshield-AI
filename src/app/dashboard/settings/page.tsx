@@ -134,27 +134,35 @@ export default function SettingsPage() {
               <li className="flex gap-3">
                 <span className="flex-shrink-0 w-6 h-6 rounded-full bg-primary text-white text-xs flex items-center justify-center">1</span>
                 <div>
-                  <p className="font-medium">Download the Extension</p>
+                  <p className="font-medium">Install the Extension</p>
                   <p className="text-gray-500">
-                    Download the extension folder from your project&apos;s <code className="bg-gray-100 px-1.5 py-0.5 rounded text-xs">/extension</code> directory
+                    Get ScopeShield AI from the{' '}
+                    <a
+                      href="https://chromewebstore.google.com/search/ScopeShield%20AI"
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      className="text-primary hover:underline font-medium"
+                    >
+                      Chrome Web Store
+                    </a>
                   </p>
                 </div>
               </li>
               <li className="flex gap-3">
                 <span className="flex-shrink-0 w-6 h-6 rounded-full bg-primary text-white text-xs flex items-center justify-center">2</span>
                 <div>
-                  <p className="font-medium">Load in Chrome</p>
+                  <p className="font-medium">Generate API Token</p>
                   <p className="text-gray-500">
-                    Go to <code className="bg-gray-100 px-1.5 py-0.5 rounded text-xs">chrome://extensions</code>, enable Developer Mode, and click &quot;Load unpacked&quot;
+                    Create a token below to connect your account
                   </p>
                 </div>
               </li>
               <li className="flex gap-3">
                 <span className="flex-shrink-0 w-6 h-6 rounded-full bg-primary text-white text-xs flex items-center justify-center">3</span>
                 <div>
-                  <p className="font-medium">Generate API Token</p>
+                  <p className="font-medium">Connect the Extension</p>
                   <p className="text-gray-500">
-                    Create a token below and paste it into the extension popup
+                    Click the extension icon, paste your token, and you&apos;re ready to go
                   </p>
                 </div>
               </li>
