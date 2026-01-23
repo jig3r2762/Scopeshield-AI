@@ -364,12 +364,13 @@ ${selectedMessage.reasoning}${repliesText}`
               {historyOpen ? 'Hide' : 'Show'} History
             </Button>
             <Button
-              variant="outline"
+              variant={projectInfoExpanded ? "default" : "outline"}
               size="sm"
               onClick={() => setProjectInfoExpanded(!projectInfoExpanded)}
             >
               <FileText className="h-4 w-4 mr-1" />
               <span className="hidden sm:inline">Info</span>
+              {projectInfoExpanded && <ChevronUp className="h-3 w-3 ml-1" />}
             </Button>
             <Link href={`/dashboard/projects/${id}/settings`}>
               <Button variant="outline" size="sm">
@@ -388,36 +389,58 @@ ${selectedMessage.reasoning}${repliesText}`
 
         {/* Collapsible Project Info */}
         {projectInfoExpanded && (
-          <div className="mt-3 pt-3 border-t grid gap-3 sm:grid-cols-2 lg:grid-cols-4">
-            <div className="bg-gray-50 rounded-lg p-3">
-              <p className="text-xs font-medium text-gray-500 mb-1">Scope Summary</p>
-              <p className="text-sm line-clamp-2">{project.scopeSummary}</p>
-            </div>
-            {project.outOfScopeItems && (
+          <div className="mt-3 pt-3 border-t space-y-3">
+            <div className="grid gap-3 sm:grid-cols-2">
               <div className="bg-gray-50 rounded-lg p-3">
-                <p className="text-xs font-medium text-gray-500 mb-1">Out of Scope</p>
-                <p className="text-sm line-clamp-2">{project.outOfScopeItems}</p>
+                <p className="text-xs font-medium text-gray-500 mb-1">Scope Summary</p>
+                <p className="text-sm whitespace-pre-wrap max-h-32 overflow-y-auto">{project.scopeSummary}</p>
               </div>
-            )}
-            <div className="bg-gray-50 rounded-lg p-3">
-              <p className="text-xs font-medium text-gray-500 mb-1">Revisions</p>
-              <div className="flex items-center gap-2">
-                <span className="text-lg font-bold">{project.revisionCount ?? 0}/{project.maxRevisions ?? 3}</span>
-                <Badge variant={(project.revisionCount ?? 0) >= (project.maxRevisions ?? 3) ? 'danger' : 'secondary'} className="text-xs">
-                  {(project.revisionCount ?? 0) >= (project.maxRevisions ?? 3) ? 'Limit' : 'Active'}
-                </Badge>
-              </div>
+              {project.outOfScopeItems && (
+                <div className="bg-gray-50 rounded-lg p-3">
+                  <p className="text-xs font-medium text-gray-500 mb-1">Out of Scope</p>
+                  <p className="text-sm whitespace-pre-wrap max-h-32 overflow-y-auto">{project.outOfScopeItems}</p>
+                </div>
+              )}
             </div>
-            <div className="bg-gray-50 rounded-lg p-3">
-              <p className="text-xs font-medium text-gray-500 mb-1">Client Risk</p>
-              <div className="flex items-center gap-2">
-                <span className="text-lg font-bold">{project.clientRiskScore ?? 0}</span>
-                <Badge
-                  variant={(project.clientRiskScore ?? 0) >= 70 ? 'danger' : (project.clientRiskScore ?? 0) >= 40 ? 'warning' : 'success'}
-                  className="text-xs"
-                >
-                  {(project.clientRiskScore ?? 0) >= 70 ? 'High' : (project.clientRiskScore ?? 0) >= 40 ? 'Medium' : 'Low'}
-                </Badge>
+            <div className="grid gap-3 grid-cols-2 sm:grid-cols-4">
+              <div className="bg-gray-50 rounded-lg p-3">
+                <p className="text-xs font-medium text-gray-500 mb-1">Revisions</p>
+                <div className="flex items-center gap-2">
+                  <span className="text-lg font-bold">{project.revisionCount ?? 0}/{project.maxRevisions ?? 3}</span>
+                  <Badge variant={(project.revisionCount ?? 0) >= (project.maxRevisions ?? 3) ? 'danger' : 'secondary'} className="text-xs">
+                    {(project.revisionCount ?? 0) >= (project.maxRevisions ?? 3) ? 'Limit' : 'Active'}
+                  </Badge>
+                </div>
+              </div>
+              <div className="bg-gray-50 rounded-lg p-3">
+                <p className="text-xs font-medium text-gray-500 mb-1">Client Risk</p>
+                <div className="flex items-center gap-2">
+                  <span className="text-lg font-bold">{project.clientRiskScore ?? 0}</span>
+                  <Badge
+                    variant={(project.clientRiskScore ?? 0) >= 70 ? 'danger' : (project.clientRiskScore ?? 0) >= 40 ? 'warning' : 'success'}
+                    className="text-xs"
+                  >
+                    {(project.clientRiskScore ?? 0) >= 70 ? 'High' : (project.clientRiskScore ?? 0) >= 40 ? 'Medium' : 'Low'}
+                  </Badge>
+                </div>
+              </div>
+              {project.contractPdfUrl && (
+                <div className="bg-gray-50 rounded-lg p-3">
+                  <p className="text-xs font-medium text-gray-500 mb-1">Contract</p>
+                  <a
+                    href={project.contractPdfUrl}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="text-sm text-blue-600 hover:underline flex items-center gap-1"
+                  >
+                    <FileText className="h-3 w-3" />
+                    View PDF
+                  </a>
+                </div>
+              )}
+              <div className="bg-gray-50 rounded-lg p-3">
+                <p className="text-xs font-medium text-gray-500 mb-1">Messages</p>
+                <span className="text-lg font-bold">{project.messages.length}</span>
               </div>
             </div>
           </div>
