@@ -16,84 +16,104 @@
         </svg>
         <span>ScopeShield AI</span>
       </div>
-      <button id="refresh-btn" class="btn-icon" title="Refresh">
-        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-          <path d="M23 4v6h-6"/>
-          <path d="M1 20v-6h6"/>
-          <path d="M3.51 9a9 9 0 0 1 14.85-3.36L23 10M1 14l4.64 4.36A9 9 0 0 0 20.49 15"/>
-        </svg>
-      </button>
+      <div class="header-actions">
+        <button id="history-toggle" class="btn-icon" title="Toggle History">
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <circle cx="12" cy="12" r="10"/>
+            <polyline points="12 6 12 12 16 14"/>
+          </svg>
+          <span id="history-count" class="history-count"></span>
+        </button>
+        <button id="refresh-btn" class="btn-icon" title="Refresh">
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <path d="M23 4v6h-6"/>
+            <path d="M1 20v-6h6"/>
+            <path d="M3.51 9a9 9 0 0 1 14.85-3.36L23 10M1 14l4.64 4.36A9 9 0 0 0 20.49 15"/>
+          </svg>
+        </button>
+      </div>
     </header>
 
-    <!-- Not Authenticated State -->
-    <div id="not-auth-section" class="section hidden">
-      <div class="empty-state">
-        <svg width="48" height="48" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5">
-          <rect x="3" y="11" width="18" height="11" rx="2" ry="2"/>
-          <path d="M7 11V7a5 5 0 0 1 10 0v4"/>
-        </svg>
-        <h3>Not Connected</h3>
-        <p>Click the extension icon to connect your account.</p>
-      </div>
-    </div>
-
-    <!-- No Analysis State -->
-    <div id="no-analysis-section" class="section">
-      <div class="empty-state">
-        <svg width="48" height="48" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5">
-          <path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/>
-        </svg>
-        <h3>No Analysis Yet</h3>
-        <p>Open an email and click "Check Scope" to analyze for scope creep.</p>
-      </div>
-    </div>
-
-    <!-- Analysis Results -->
-    <div id="analysis-section" class="section hidden">
-      <!-- Risk Badge -->
-      <div id="risk-badge" class="risk-badge risk-low">
-        <span class="risk-icon"></span>
-        <div class="risk-info">
-          <span class="risk-label">Within Scope</span>
-          <span class="risk-confidence">85% confidence</span>
+    <!-- Main Panel Body -->
+    <div class="panel-body">
+      <!-- Collapsible History Rail -->
+      <aside id="history-rail" class="history-rail collapsed">
+        <div class="history-rail-header">
+          <span>History</span>
+          <button id="close-history" class="btn-icon-sm" title="Close History">&times;</button>
         </div>
-      </div>
-
-      <!-- Reasoning -->
-      <div class="analysis-card">
-        <h3>Analysis</h3>
-        <p id="analysis-reasoning">Loading...</p>
-      </div>
-
-      <!-- Reply Suggestions -->
-      <div id="replies-section" class="replies-section hidden">
-        <h3>Suggested Replies</h3>
-        <div id="replies-container" class="replies-container">
-          <!-- Replies will be inserted here -->
+        <div id="history-list" class="history-list">
+          <p class="empty-history">No recent analyses</p>
         </div>
-      </div>
+      </aside>
 
-      <!-- Project Link -->
-      <div id="project-link-section" class="project-link-section">
-        <h3>Link to Project</h3>
-        <select id="project-select">
-          <option value="">Select a project...</option>
-        </select>
-        <button id="link-project-btn" class="btn btn-sm">Link & Re-analyze</button>
-      </div>
+      <!-- Main Content Area -->
+      <main class="analysis-main">
+        <!-- Not Authenticated State -->
+        <div id="not-auth-section" class="section hidden">
+          <div class="empty-state">
+            <svg width="48" height="48" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5">
+              <rect x="3" y="11" width="18" height="11" rx="2" ry="2"/>
+              <path d="M7 11V7a5 5 0 0 1 10 0v4"/>
+            </svg>
+            <h3>Not Connected</h3>
+            <p>Click the extension icon to connect your account.</p>
+          </div>
+        </div>
 
-      <!-- Timestamp -->
-      <div class="analysis-meta">
-        <span id="analysis-time">Just now</span>
-      </div>
-    </div>
+        <!-- No Analysis State -->
+        <div id="no-analysis-section" class="section">
+          <div class="empty-state">
+            <svg width="48" height="48" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5">
+              <path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/>
+            </svg>
+            <h3>No Analysis Yet</h3>
+            <p>Open an email and click "Check Scope" to analyze for scope creep.</p>
+          </div>
+        </div>
 
-    <!-- History Section -->
-    <div id="history-section" class="section">
-      <h3 class="section-title">Recent Analyses</h3>
-      <div id="history-list" class="history-list">
-        <p class="empty-history">No recent analyses</p>
-      </div>
+        <!-- Analysis Results -->
+        <div id="analysis-section" class="section hidden">
+          <!-- Compact Sticky Risk Header -->
+          <div id="risk-header" class="risk-header">
+            <div id="risk-badge" class="risk-badge-compact risk-low">
+              <span class="risk-icon-sm"></span>
+              <span class="risk-label">Within Scope</span>
+            </div>
+            <span id="risk-confidence" class="risk-confidence">85%</span>
+            <span id="analysis-time" class="analysis-time">Just now</span>
+          </div>
+
+          <!-- Collapsible Analysis Card -->
+          <details class="analysis-details" open>
+            <summary>Analysis</summary>
+            <div class="details-content">
+              <p id="analysis-reasoning">Loading...</p>
+            </div>
+          </details>
+
+          <!-- Collapsible Reply Suggestions -->
+          <details id="replies-section" class="replies-details hidden">
+            <summary>Suggested Replies <span id="reply-count" class="reply-count"></span></summary>
+            <div class="details-content">
+              <div id="replies-container" class="replies-container">
+                <!-- Replies will be inserted here -->
+              </div>
+            </div>
+          </details>
+
+          <!-- Collapsible Project Link -->
+          <details id="project-link-section" class="project-details">
+            <summary>Link to Project</summary>
+            <div class="details-content">
+              <select id="project-select">
+                <option value="">Select a project...</option>
+              </select>
+              <button id="link-project-btn" class="btn btn-sm">Link & Re-analyze</button>
+            </div>
+          </details>
+        </div>
+      </main>
     </div>
   </div>
 

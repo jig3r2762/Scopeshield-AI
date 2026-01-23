@@ -22,7 +22,12 @@ import {
   Download,
   ClipboardCopy,
   RotateCcw,
-  TrendingUp
+  TrendingUp,
+  History,
+  ChevronDown,
+  ChevronUp,
+  X,
+  Menu
 } from 'lucide-react'
 
 interface Reply {
@@ -56,21 +61,30 @@ interface Project {
 const riskConfig = {
   LIKELY_IN_SCOPE: {
     label: 'Within Scope',
+    shortLabel: 'Safe',
     variant: 'success' as const,
     icon: CheckCircle,
-    color: 'text-green-600'
+    color: 'text-green-600',
+    bg: 'bg-green-50',
+    border: 'border-green-200'
   },
   POSSIBLY_SCOPE_CREEP: {
     label: 'Potential Scope Creep',
+    shortLabel: 'Caution',
     variant: 'warning' as const,
     icon: AlertCircle,
-    color: 'text-yellow-600'
+    color: 'text-yellow-600',
+    bg: 'bg-yellow-50',
+    border: 'border-yellow-200'
   },
   HIGH_RISK_SCOPE_CREEP: {
     label: 'Likely Outside Scope',
+    shortLabel: 'Risk',
     variant: 'danger' as const,
     icon: AlertTriangle,
-    color: 'text-red-600'
+    color: 'text-red-600',
+    bg: 'bg-red-50',
+    border: 'border-red-200'
   }
 }
 
@@ -97,6 +111,11 @@ export default function ProjectPage({ params }: { params: Promise<{ id: string }
   const [error, setError] = useState('')
   const [copiedId, setCopiedId] = useState<string | null>(null)
   const [selectedMessage, setSelectedMessage] = useState<Message | null>(null)
+  const [historyOpen, setHistoryOpen] = useState(true)
+  const [mobileHistoryOpen, setMobileHistoryOpen] = useState(false)
+  const [analysisExpanded, setAnalysisExpanded] = useState(true)
+  const [repliesExpanded, setRepliesExpanded] = useState(true)
+  const [projectInfoExpanded, setProjectInfoExpanded] = useState(false)
 
   useEffect(() => {
     fetchProject()
@@ -146,6 +165,7 @@ export default function ProjectPage({ params }: { params: Promise<{ id: string }
       } : null)
       setSelectedMessage(newMessage)
       setMessage('')
+      setAnalysisExpanded(true)
     } catch (err) {
       setError(err instanceof Error ? err.message : 'Something went wrong')
     } finally {
@@ -229,442 +249,381 @@ ${selectedMessage.reasoning}${repliesText}`
     )
   }
 
+  const HistoryPanel = ({ mobile = false }: { mobile?: boolean }) => (
+    <div className={`flex flex-col h-full ${mobile ? '' : ''}`}>
+      <div className="flex items-center justify-between p-3 border-b bg-gray-50">
+        <div className="flex items-center gap-2">
+          <History className="h-4 w-4 text-gray-500" />
+          <span className="font-semibold text-sm">History</span>
+          {project.messages.length > 0 && (
+            <Badge variant="secondary" className="text-xs">{project.messages.length}</Badge>
+          )}
+        </div>
+        <div className="flex items-center gap-1">
+          {project.messages.length > 0 && (
+            <>
+              <Button
+                variant="ghost"
+                size="sm"
+                onClick={() => handleExport('csv')}
+                className="h-7 px-2"
+                title="Export CSV"
+              >
+                <Download className="h-3 w-3" />
+              </Button>
+            </>
+          )}
+          {mobile && (
+            <Button
+              variant="ghost"
+              size="sm"
+              onClick={() => setMobileHistoryOpen(false)}
+              className="h-7 px-2"
+            >
+              <X className="h-4 w-4" />
+            </Button>
+          )}
+        </div>
+      </div>
+      <div className="flex-1 overflow-y-auto p-2">
+        {project.messages.length === 0 ? (
+          <p className="text-center text-sm text-gray-400 py-8">No messages yet</p>
+        ) : (
+          <div className="space-y-2">
+            {project.messages.map((msg) => {
+              const risk = riskConfig[msg.riskLevel]
+              return (
+                <div
+                  key={msg.id}
+                  className={`p-3 rounded-lg border cursor-pointer transition-all hover:shadow-sm ${
+                    selectedMessage?.id === msg.id
+                      ? `${risk.bg} ${risk.border} ring-1 ring-offset-1 ring-gray-300`
+                      : 'bg-white border-gray-200 hover:border-gray-300'
+                  }`}
+                  onClick={() => {
+                    setSelectedMessage(msg)
+                    setAnalysisExpanded(true)
+                    if (mobile) setMobileHistoryOpen(false)
+                  }}
+                >
+                  <p className="text-sm line-clamp-2 mb-2">{msg.clientMessage}</p>
+                  <div className="flex items-center justify-between">
+                    <span className="text-xs text-gray-400 flex items-center gap-1">
+                      <Clock className="h-3 w-3" />
+                      {new Date(msg.createdAt).toLocaleDateString()}
+                    </span>
+                    <Badge variant={risk.variant} className="text-xs">
+                      {risk.shortLabel}
+                    </Badge>
+                  </div>
+                </div>
+              )
+            })}
+          </div>
+        )}
+      </div>
+    </div>
+  )
+
   return (
-    <div className="w-full max-w-full overflow-x-hidden">
-      {/* Header */}
-      <div className="mb-4 md:mb-6">
-        <Link
-          href="/dashboard"
-          className="inline-flex items-center text-sm text-gray-500 hover:text-gray-900 mb-3"
-        >
-          <ArrowLeft className="h-4 w-4 mr-2 flex-shrink-0" />
-          Back to Projects
-        </Link>
-        <div className="flex flex-col gap-3">
-          <h1 className="text-xl sm:text-2xl md:text-3xl font-bold break-words">{project.name}</h1>
-          <div className="flex flex-wrap gap-2">
-            <Link href={`/dashboard/projects/${id}/settings`} className="flex-1 min-w-[120px] sm:flex-none">
-              <Button variant="outline" size="sm" className="w-full sm:w-auto">
-                <Settings className="h-4 w-4 mr-2 flex-shrink-0" />
-                Settings
+    <div className="h-[calc(100vh-64px)] flex flex-col overflow-hidden">
+      {/* Compact Header */}
+      <div className="flex-shrink-0 border-b bg-white px-4 py-3">
+        <div className="flex items-center justify-between gap-3">
+          <div className="flex items-center gap-3 min-w-0">
+            <Link
+              href="/dashboard"
+              className="text-gray-400 hover:text-gray-600 flex-shrink-0"
+            >
+              <ArrowLeft className="h-5 w-5" />
+            </Link>
+            <h1 className="text-lg font-semibold truncate">{project.name}</h1>
+          </div>
+          <div className="flex items-center gap-2 flex-shrink-0">
+            {/* Mobile History Toggle */}
+            <Button
+              variant="outline"
+              size="sm"
+              onClick={() => setMobileHistoryOpen(true)}
+              className="lg:hidden"
+            >
+              <History className="h-4 w-4 mr-1" />
+              <span className="hidden sm:inline">History</span>
+              {project.messages.length > 0 && (
+                <Badge variant="secondary" className="ml-1 text-xs">{project.messages.length}</Badge>
+              )}
+            </Button>
+            {/* Desktop History Toggle */}
+            <Button
+              variant="outline"
+              size="sm"
+              onClick={() => setHistoryOpen(!historyOpen)}
+              className="hidden lg:flex"
+            >
+              <History className="h-4 w-4 mr-1" />
+              {historyOpen ? 'Hide' : 'Show'} History
+            </Button>
+            <Button
+              variant="outline"
+              size="sm"
+              onClick={() => setProjectInfoExpanded(!projectInfoExpanded)}
+            >
+              <FileText className="h-4 w-4 mr-1" />
+              <span className="hidden sm:inline">Info</span>
+            </Button>
+            <Link href={`/dashboard/projects/${id}/settings`}>
+              <Button variant="outline" size="sm">
+                <Settings className="h-4 w-4" />
               </Button>
             </Link>
             <Button
               variant="destructive"
               size="sm"
               onClick={handleDeleteProject}
-              className="flex-1 min-w-[100px] sm:flex-none"
             >
-              <Trash2 className="h-4 w-4 mr-2 flex-shrink-0" />
-              Delete
+              <Trash2 className="h-4 w-4" />
             </Button>
           </div>
         </div>
-      </div>
 
-      {/* Project Info Cards - Always full width on mobile */}
-      <div className="mb-4 md:mb-6">
-        <div className="grid grid-cols-1 gap-3 sm:grid-cols-2 lg:hidden">
-          {/* Project Scope */}
-          <Card className="w-full">
-            <CardHeader className="p-3 pb-2">
-              <CardTitle className="text-sm font-semibold">Project Scope</CardTitle>
-            </CardHeader>
-            <CardContent className="p-3 pt-0">
-              <p className="text-sm text-gray-600 break-words whitespace-pre-wrap overflow-hidden">
-                {project.scopeSummary}
-              </p>
-            </CardContent>
-          </Card>
-
-          {/* Out of Scope */}
-          {project.outOfScopeItems && (
-            <Card className="w-full">
-              <CardHeader className="p-3 pb-2">
-                <CardTitle className="text-sm font-semibold">Out of Scope</CardTitle>
-              </CardHeader>
-              <CardContent className="p-3 pt-0">
-                <p className="text-sm text-gray-600 break-words whitespace-pre-wrap overflow-hidden">
-                  {project.outOfScopeItems}
-                </p>
-              </CardContent>
-            </Card>
-          )}
-
-          {/* Contract */}
-          {project.contractPdfUrl && (
-            <Card className="w-full">
-              <CardHeader className="p-3 pb-2">
-                <CardTitle className="text-sm font-semibold">Contract</CardTitle>
-              </CardHeader>
-              <CardContent className="p-3 pt-0">
-                <a
-                  href={project.contractPdfUrl}
-                  target="_blank"
-                  rel="noopener noreferrer"
-                  className="inline-flex items-center text-sm text-primary hover:underline"
-                >
-                  <FileText className="h-4 w-4 mr-2 flex-shrink-0" />
-                  <span>View PDF</span>
-                </a>
-              </CardContent>
-            </Card>
-          )}
-
-          {/* Revisions */}
-          <Card className="w-full">
-            <CardHeader className="p-3 pb-2">
-              <CardTitle className="text-sm font-semibold flex items-center gap-2">
-                <RotateCcw className="h-4 w-4 flex-shrink-0" />
-                Revisions
-              </CardTitle>
-            </CardHeader>
-            <CardContent className="p-3 pt-0">
-              <div className="flex items-center justify-between gap-2 flex-wrap">
-                <span className="text-lg font-bold">
-                  {project.revisionCount ?? 0} / {project.maxRevisions ?? 3}
-                </span>
-                <Badge
-                  variant={(project.revisionCount ?? 0) >= (project.maxRevisions ?? 3) ? 'danger' : 'secondary'}
-                  className="text-xs"
-                >
+        {/* Collapsible Project Info */}
+        {projectInfoExpanded && (
+          <div className="mt-3 pt-3 border-t grid gap-3 sm:grid-cols-2 lg:grid-cols-4">
+            <div className="bg-gray-50 rounded-lg p-3">
+              <p className="text-xs font-medium text-gray-500 mb-1">Scope Summary</p>
+              <p className="text-sm line-clamp-2">{project.scopeSummary}</p>
+            </div>
+            {project.outOfScopeItems && (
+              <div className="bg-gray-50 rounded-lg p-3">
+                <p className="text-xs font-medium text-gray-500 mb-1">Out of Scope</p>
+                <p className="text-sm line-clamp-2">{project.outOfScopeItems}</p>
+              </div>
+            )}
+            <div className="bg-gray-50 rounded-lg p-3">
+              <p className="text-xs font-medium text-gray-500 mb-1">Revisions</p>
+              <div className="flex items-center gap-2">
+                <span className="text-lg font-bold">{project.revisionCount ?? 0}/{project.maxRevisions ?? 3}</span>
+                <Badge variant={(project.revisionCount ?? 0) >= (project.maxRevisions ?? 3) ? 'danger' : 'secondary'} className="text-xs">
                   {(project.revisionCount ?? 0) >= (project.maxRevisions ?? 3) ? 'Limit' : 'Active'}
                 </Badge>
               </div>
-            </CardContent>
-          </Card>
-
-          {/* Client Risk */}
-          <Card className="w-full">
-            <CardHeader className="p-3 pb-2">
-              <CardTitle className="text-sm font-semibold flex items-center gap-2">
-                <TrendingUp className="h-4 w-4 flex-shrink-0" />
-                Client Risk
-              </CardTitle>
-            </CardHeader>
-            <CardContent className="p-3 pt-0">
-              <div className="flex items-center justify-between gap-2 flex-wrap">
+            </div>
+            <div className="bg-gray-50 rounded-lg p-3">
+              <p className="text-xs font-medium text-gray-500 mb-1">Client Risk</p>
+              <div className="flex items-center gap-2">
                 <span className="text-lg font-bold">{project.clientRiskScore ?? 0}</span>
                 <Badge
-                  variant={
-                    (project.clientRiskScore ?? 0) >= 70 ? 'danger' :
-                    (project.clientRiskScore ?? 0) >= 40 ? 'warning' : 'success'
-                  }
+                  variant={(project.clientRiskScore ?? 0) >= 70 ? 'danger' : (project.clientRiskScore ?? 0) >= 40 ? 'warning' : 'success'}
                   className="text-xs"
                 >
-                  {(project.clientRiskScore ?? 0) >= 70 ? 'High' :
-                   (project.clientRiskScore ?? 0) >= 40 ? 'Medium' : 'Low'}
+                  {(project.clientRiskScore ?? 0) >= 70 ? 'High' : (project.clientRiskScore ?? 0) >= 40 ? 'Medium' : 'Low'}
                 </Badge>
               </div>
-              <p className="text-xs text-gray-500 mt-1">
-                {project.messages.length} messages analyzed
-              </p>
-            </CardContent>
-          </Card>
-        </div>
+            </div>
+          </div>
+        )}
       </div>
 
-      {/* Main Grid - Desktop Only */}
-      <div className="grid gap-4 md:gap-6 lg:grid-cols-3">
-        {/* Main Content */}
-        <div className="lg:col-span-2 space-y-4">
-          {/* Message Analysis Form */}
-          <Card className="w-full">
-            <CardHeader>
-              <CardTitle className="text-base sm:text-lg">Analyze Client Message</CardTitle>
-              <CardDescription className="text-sm">
-                Paste a client message to detect scope creep.
-              </CardDescription>
-            </CardHeader>
-            <CardContent className="space-y-4">
-              {error && (
-                <div className="p-3 text-sm text-red-600 bg-red-50 border border-red-200 rounded-md break-words">
-                  {error}
-                </div>
-              )}
-              <Textarea
-                placeholder="Paste the client's message here..."
-                className="min-h-[120px] sm:min-h-[150px] text-base"
-                value={message}
-                onChange={(e) => setMessage(e.target.value)}
-                disabled={analyzing}
-              />
-              <Button
-                onClick={handleAnalyze}
-                disabled={analyzing || !message.trim()}
-                className="w-full sm:w-auto"
-              >
-                {analyzing ? (
-                  <>
-                    <Loader2 className="h-4 w-4 mr-2 animate-spin flex-shrink-0" />
-                    Analyzing...
-                  </>
-                ) : (
-                  <>
-                    <Send className="h-4 w-4 mr-2 flex-shrink-0" />
-                    Analyze Message
-                  </>
-                )}
-              </Button>
-            </CardContent>
-          </Card>
+      {/* Mobile History Drawer */}
+      {mobileHistoryOpen && (
+        <div className="fixed inset-0 z-50 lg:hidden">
+          <div className="absolute inset-0 bg-black/50" onClick={() => setMobileHistoryOpen(false)} />
+          <div className="absolute left-0 top-0 bottom-0 w-80 max-w-[85vw] bg-white shadow-xl">
+            <HistoryPanel mobile />
+          </div>
+        </div>
+      )}
 
-          {/* Analysis Result */}
-          {selectedMessage && (
-            <Card className="w-full">
-              <CardHeader>
-                <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2">
-                  <CardTitle className="text-base sm:text-lg">Analysis Result</CardTitle>
-                  <div className="flex items-center gap-2 flex-wrap">
-                    <Button
-                      variant="outline"
-                      size="sm"
-                      onClick={handleCopyFullAnalysis}
-                    >
-                      {copiedId === 'full-analysis' ? (
-                        <>
-                          <CheckCircle className="h-4 w-4 mr-1 text-green-600 flex-shrink-0" />
-                          Copied!
-                        </>
-                      ) : (
-                        <>
-                          <ClipboardCopy className="h-4 w-4 mr-1 flex-shrink-0" />
-                          Copy
-                        </>
-                      )}
-                    </Button>
-                    <Badge variant={riskConfig[selectedMessage.riskLevel].variant}>
-                      {riskConfig[selectedMessage.riskLevel].label}
-                    </Badge>
+      {/* Main Content Area */}
+      <div className="flex-1 flex overflow-hidden">
+        {/* Desktop History Sidebar */}
+        {historyOpen && (
+          <div className="hidden lg:flex w-72 flex-shrink-0 border-r bg-white flex-col">
+            <HistoryPanel />
+          </div>
+        )}
+
+        {/* Center Content */}
+        <div className="flex-1 overflow-y-auto">
+          <div className="max-w-3xl mx-auto p-4 space-y-4">
+            {/* Analysis Form - Compact */}
+            <Card>
+              <CardContent className="p-4">
+                {error && (
+                  <div className="mb-3 p-3 text-sm text-red-600 bg-red-50 border border-red-200 rounded-md">
+                    {error}
                   </div>
-                </div>
-              </CardHeader>
-              <CardContent className="space-y-4">
-                <div className="space-y-3">
-                  <div className="flex items-center gap-2 flex-wrap">
+                )}
+                <Textarea
+                  placeholder="Paste client message to analyze for scope creep..."
+                  className="min-h-[100px] mb-3 text-sm resize-none"
+                  value={message}
+                  onChange={(e) => setMessage(e.target.value)}
+                  disabled={analyzing}
+                />
+                <Button
+                  onClick={handleAnalyze}
+                  disabled={analyzing || !message.trim()}
+                  className="w-full sm:w-auto"
+                >
+                  {analyzing ? (
+                    <>
+                      <Loader2 className="h-4 w-4 mr-2 animate-spin" />
+                      Analyzing...
+                    </>
+                  ) : (
+                    <>
+                      <Send className="h-4 w-4 mr-2" />
+                      Analyze Message
+                    </>
+                  )}
+                </Button>
+              </CardContent>
+            </Card>
+
+            {/* Analysis Result */}
+            {selectedMessage && (
+              <>
+                {/* Compact Risk Header */}
+                <div className={`rounded-lg p-3 flex items-center justify-between ${riskConfig[selectedMessage.riskLevel].bg} ${riskConfig[selectedMessage.riskLevel].border} border`}>
+                  <div className="flex items-center gap-3">
                     {(() => {
                       const Icon = riskConfig[selectedMessage.riskLevel].icon
-                      return <Icon className={`h-5 w-5 flex-shrink-0 ${riskConfig[selectedMessage.riskLevel].color}`} />
+                      return <Icon className={`h-5 w-5 ${riskConfig[selectedMessage.riskLevel].color}`} />
                     })()}
-                    <span className="font-medium text-sm sm:text-base">
-                      Confidence: {formatConfidence(selectedMessage.confidenceScore).display}
-                    </span>
+                    <div>
+                      <p className={`font-semibold ${riskConfig[selectedMessage.riskLevel].color}`}>
+                        {riskConfig[selectedMessage.riskLevel].label}
+                      </p>
+                      <p className="text-xs text-gray-500">
+                        Confidence: {formatConfidence(selectedMessage.confidenceScore).display}
+                      </p>
+                    </div>
                   </div>
-                  <div className="bg-gray-100 rounded-lg p-3 sm:p-4">
-                    <p className="text-sm break-words whitespace-pre-wrap overflow-hidden">
-                      {selectedMessage.reasoning}
-                    </p>
-                  </div>
-                  <p className="text-xs text-gray-500 italic">
-                    This is a risk assessment to help guide your response.
-                  </p>
+                  <Button
+                    variant="ghost"
+                    size="sm"
+                    onClick={handleCopyFullAnalysis}
+                    className="flex-shrink-0"
+                  >
+                    {copiedId === 'full-analysis' ? (
+                      <CheckCircle className="h-4 w-4 text-green-600" />
+                    ) : (
+                      <ClipboardCopy className="h-4 w-4" />
+                    )}
+                  </Button>
                 </div>
 
+                {/* Client Message Preview */}
+                <Card>
+                  <CardHeader className="p-3 pb-0">
+                    <p className="text-xs font-medium text-gray-500">Client Message</p>
+                  </CardHeader>
+                  <CardContent className="p-3 pt-2">
+                    <p className="text-sm text-gray-700 whitespace-pre-wrap">{selectedMessage.clientMessage}</p>
+                  </CardContent>
+                </Card>
+
+                {/* Collapsible Analysis */}
+                <Card>
+                  <CardHeader
+                    className="p-3 cursor-pointer hover:bg-gray-50 transition-colors"
+                    onClick={() => setAnalysisExpanded(!analysisExpanded)}
+                  >
+                    <div className="flex items-center justify-between">
+                      <CardTitle className="text-sm font-semibold">Analysis</CardTitle>
+                      {analysisExpanded ? (
+                        <ChevronUp className="h-4 w-4 text-gray-400" />
+                      ) : (
+                        <ChevronDown className="h-4 w-4 text-gray-400" />
+                      )}
+                    </div>
+                  </CardHeader>
+                  {analysisExpanded && (
+                    <CardContent className="p-3 pt-0">
+                      <p className="text-sm text-gray-600 whitespace-pre-wrap">{selectedMessage.reasoning}</p>
+                    </CardContent>
+                  )}
+                </Card>
+
+                {/* Collapsible Replies */}
                 {selectedMessage.replies.length > 0 && (
-                  <div className="space-y-3">
-                    <h4 className="font-medium text-sm sm:text-base">Suggested Replies</h4>
-                    <div className="space-y-3">
-                      {selectedMessage.replies.map((reply) => (
-                        <div
-                          key={reply.id}
-                          className="border rounded-lg p-3 space-y-2"
-                        >
-                          <div className="flex items-center justify-between gap-2 flex-wrap">
-                            <Badge variant="secondary" className="text-xs">
-                              {replyTypeLabels[reply.type]}
-                            </Badge>
-                            <Button
-                              variant="ghost"
-                              size="sm"
-                              onClick={() => handleCopyReply(reply.id, reply.content)}
-                            >
-                              {copiedId === reply.id ? (
-                                <>
-                                  <CheckCircle className="h-4 w-4 mr-1 text-green-600 flex-shrink-0" />
-                                  Copied!
-                                </>
-                              ) : (
-                                <>
-                                  <Copy className="h-4 w-4 mr-1 flex-shrink-0" />
-                                  Copy
-                                </>
-                              )}
-                            </Button>
-                          </div>
-                          <p className="text-sm text-gray-600 break-words overflow-hidden">
-                            {reply.content}
-                          </p>
+                  <Card>
+                    <CardHeader
+                      className="p-3 cursor-pointer hover:bg-gray-50 transition-colors"
+                      onClick={() => setRepliesExpanded(!repliesExpanded)}
+                    >
+                      <div className="flex items-center justify-between">
+                        <div className="flex items-center gap-2">
+                          <CardTitle className="text-sm font-semibold">Suggested Replies</CardTitle>
+                          <Badge variant="secondary" className="text-xs">{selectedMessage.replies.length}</Badge>
                         </div>
-                      ))}
-                    </div>
-                  </div>
-                )}
-              </CardContent>
-            </Card>
-          )}
-
-          {/* Message History */}
-          {project.messages.length > 0 && (
-            <Card className="w-full">
-              <CardHeader>
-                <div className="flex flex-col gap-3">
-                  <div>
-                    <CardTitle className="text-base sm:text-lg">Message History</CardTitle>
-                    <CardDescription className="text-sm">
-                      Previously analyzed messages
-                    </CardDescription>
-                  </div>
-                  <div className="flex gap-2">
-                    <Button
-                      variant="outline"
-                      size="sm"
-                      onClick={() => handleExport('csv')}
-                      className="flex-1 sm:flex-none"
-                    >
-                      <Download className="h-4 w-4 mr-1 flex-shrink-0" />
-                      CSV
-                    </Button>
-                    <Button
-                      variant="outline"
-                      size="sm"
-                      onClick={() => handleExport('json')}
-                      className="flex-1 sm:flex-none"
-                    >
-                      <Download className="h-4 w-4 mr-1 flex-shrink-0" />
-                      JSON
-                    </Button>
-                  </div>
-                </div>
-              </CardHeader>
-              <CardContent>
-                <div className="space-y-3">
-                  {project.messages.map((msg) => (
-                    <div
-                      key={msg.id}
-                      className={`border rounded-lg p-3 cursor-pointer transition-colors hover:bg-gray-50 ${
-                        selectedMessage?.id === msg.id ? 'ring-2 ring-primary' : ''
-                      }`}
-                      onClick={() => setSelectedMessage(msg)}
-                    >
-                      <div className="flex flex-col gap-2">
-                        <p className="text-sm break-words line-clamp-2 overflow-hidden">
-                          {msg.clientMessage}
-                        </p>
-                        <div className="flex items-center justify-between gap-2 flex-wrap">
-                          <div className="flex items-center gap-2 text-xs text-gray-500">
-                            <Clock className="h-3 w-3 flex-shrink-0" />
-                            {new Date(msg.createdAt).toLocaleDateString()}
-                          </div>
-                          <Badge variant={riskConfig[msg.riskLevel].variant} className="text-xs">
-                            {msg.riskLevel === 'LIKELY_IN_SCOPE' ? 'Safe' :
-                             msg.riskLevel === 'POSSIBLY_SCOPE_CREEP' ? 'Caution' : 'Risk'}
-                          </Badge>
-                        </div>
+                        {repliesExpanded ? (
+                          <ChevronUp className="h-4 w-4 text-gray-400" />
+                        ) : (
+                          <ChevronDown className="h-4 w-4 text-gray-400" />
+                        )}
                       </div>
-                    </div>
-                  ))}
+                    </CardHeader>
+                    {repliesExpanded && (
+                      <CardContent className="p-3 pt-0 space-y-3">
+                        {selectedMessage.replies.map((reply) => (
+                          <div
+                            key={reply.id}
+                            className="border rounded-lg p-3 bg-gray-50"
+                          >
+                            <div className="flex items-center justify-between mb-2">
+                              <Badge variant="secondary" className="text-xs">
+                                {replyTypeLabels[reply.type]}
+                              </Badge>
+                              <Button
+                                variant="ghost"
+                                size="sm"
+                                onClick={() => handleCopyReply(reply.id, reply.content)}
+                                className="h-7"
+                              >
+                                {copiedId === reply.id ? (
+                                  <>
+                                    <CheckCircle className="h-3 w-3 mr-1 text-green-600" />
+                                    <span className="text-xs">Copied</span>
+                                  </>
+                                ) : (
+                                  <>
+                                    <Copy className="h-3 w-3 mr-1" />
+                                    <span className="text-xs">Copy</span>
+                                  </>
+                                )}
+                              </Button>
+                            </div>
+                            <p className="text-sm text-gray-600">{reply.content}</p>
+                          </div>
+                        ))}
+                      </CardContent>
+                    )}
+                  </Card>
+                )}
+              </>
+            )}
+
+            {/* Empty State when no message selected */}
+            {!selectedMessage && project.messages.length === 0 && (
+              <div className="text-center py-12">
+                <div className="inline-flex items-center justify-center w-12 h-12 rounded-full bg-gray-100 mb-4">
+                  <Send className="h-6 w-6 text-gray-400" />
                 </div>
-              </CardContent>
-            </Card>
-          )}
-        </div>
-
-        {/* Sidebar - Desktop Only */}
-        <div className="hidden lg:block space-y-4">
-          <Card>
-            <CardHeader className="pb-2">
-              <CardTitle className="text-sm font-semibold">Project Scope</CardTitle>
-            </CardHeader>
-            <CardContent>
-              <p className="text-sm text-gray-600 break-words whitespace-pre-wrap">
-                {project.scopeSummary}
-              </p>
-            </CardContent>
-          </Card>
-
-          {project.outOfScopeItems && (
-            <Card>
-              <CardHeader className="pb-2">
-                <CardTitle className="text-sm font-semibold">Out of Scope</CardTitle>
-              </CardHeader>
-              <CardContent>
-                <p className="text-sm text-gray-600 break-words whitespace-pre-wrap">
-                  {project.outOfScopeItems}
-                </p>
-              </CardContent>
-            </Card>
-          )}
-
-          {project.contractPdfUrl && (
-            <Card>
-              <CardHeader className="pb-2">
-                <CardTitle className="text-sm font-semibold">Contract</CardTitle>
-              </CardHeader>
-              <CardContent>
-                <a
-                  href={project.contractPdfUrl}
-                  target="_blank"
-                  rel="noopener noreferrer"
-                  className="inline-flex items-center text-sm text-primary hover:underline"
-                >
-                  <FileText className="h-4 w-4 mr-2 flex-shrink-0" />
-                  View Contract PDF
-                </a>
-              </CardContent>
-            </Card>
-          )}
-
-          <Card>
-            <CardHeader className="pb-2">
-              <CardTitle className="text-sm font-semibold flex items-center gap-2">
-                <RotateCcw className="h-4 w-4 flex-shrink-0" />
-                Revisions
-              </CardTitle>
-            </CardHeader>
-            <CardContent>
-              <div className="flex items-center justify-between gap-2">
-                <span className="text-2xl font-bold">
-                  {project.revisionCount ?? 0} / {project.maxRevisions ?? 3}
-                </span>
-                <Badge
-                  variant={(project.revisionCount ?? 0) >= (project.maxRevisions ?? 3) ? 'danger' : 'secondary'}
-                >
-                  {(project.revisionCount ?? 0) >= (project.maxRevisions ?? 3) ? 'Limit Reached' : 'Active'}
-                </Badge>
+                <p className="text-gray-500">Paste a client message above to analyze for scope creep</p>
               </div>
-              {(project.revisionCount ?? 0) >= (project.maxRevisions ?? 3) && (
-                <p className="text-xs text-gray-500 mt-2">
-                  Additional revisions should be billed separately.
-                </p>
-              )}
-            </CardContent>
-          </Card>
+            )}
 
-          <Card>
-            <CardHeader className="pb-2">
-              <CardTitle className="text-sm font-semibold flex items-center gap-2">
-                <TrendingUp className="h-4 w-4 flex-shrink-0" />
-                Client Risk Score
-              </CardTitle>
-            </CardHeader>
-            <CardContent>
-              <div className="flex items-center justify-between gap-2">
-                <span className="text-2xl font-bold">{project.clientRiskScore ?? 0}</span>
-                <Badge
-                  variant={
-                    (project.clientRiskScore ?? 0) >= 70 ? 'danger' :
-                    (project.clientRiskScore ?? 0) >= 40 ? 'warning' : 'success'
-                  }
-                >
-                  {(project.clientRiskScore ?? 0) >= 70 ? 'High Risk' :
-                   (project.clientRiskScore ?? 0) >= 40 ? 'Medium Risk' : 'Low Risk'}
-                </Badge>
+            {!selectedMessage && project.messages.length > 0 && (
+              <div className="text-center py-12">
+                <div className="inline-flex items-center justify-center w-12 h-12 rounded-full bg-gray-100 mb-4">
+                  <History className="h-6 w-6 text-gray-400" />
+                </div>
+                <p className="text-gray-500">Select a message from history or analyze a new one</p>
               </div>
-              <p className="text-xs text-gray-500 mt-2">
-                Based on {project.messages.length} analyzed messages
-              </p>
-            </CardContent>
-          </Card>
+            )}
+          </div>
         </div>
       </div>
     </div>

@@ -40,7 +40,13 @@ const SCOPE_CREEP_PATTERNS = [
   { pattern: /redo\s+(the|this)/i, weight: 0.4, reason: 'Requests to redo completed work' },
   { pattern: /start\s+over/i, weight: 0.5, reason: 'Requests to start work over' },
   { pattern: /completely\s+redesign/i, weight: 0.5, reason: 'Complete redesign request' },
-  { pattern: /(fonts?|colors?|spacing|layout).*(and|,).*(fonts?|colors?|spacing|layout)/i, weight: 0.4, reason: 'Multiple design elements in one request' }
+  { pattern: /(fonts?|colors?|spacing|layout).*(and|,).*(fonts?|colors?|spacing|layout)/i, weight: 0.4, reason: 'Multiple design elements in one request' },
+  // Compliance, security, regulatory patterns (HIGH_RISK)
+  { pattern: /gdpr|ccpa|hipaa|compliance/i, weight: 0.5, reason: 'Introduces compliance/regulatory requirements' },
+  { pattern: /security\s+(audit|review|requirements?)/i, weight: 0.45, reason: 'Introduces security requirements' },
+  { pattern: /ssl|encryption|authentication/i, weight: 0.4, reason: 'Introduces security/infrastructure work' },
+  { pattern: /legal\s+(requirements?|review)/i, weight: 0.45, reason: 'Introduces legal/regulatory expectations' },
+  { pattern: /infrastructure|server|hosting|deployment/i, weight: 0.4, reason: 'Involves infrastructure work' }
 ]
 
 // In-scope indicators

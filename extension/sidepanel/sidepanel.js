@@ -2,6 +2,9 @@
 
 const API_BASE_URL = 'https://scopeshield-ai.vercel.app';
 
+// Track current active analysis for history highlighting
+let currentAnalysisId = null;
+
 document.addEventListener('DOMContentLoaded', async () => {
   await checkAuthAndLoadData();
   setupEventListeners();
@@ -24,6 +27,12 @@ async function checkAuthAndLoadData() {
 
   // Load projects for linking
   await loadProjects();
+
+  // Restore history rail state
+  const { historyRailOpen } = await chrome.storage.local.get(['historyRailOpen']);
+  if (historyRailOpen) {
+    document.getElementById('history-rail').classList.remove('collapsed');
+  }
 
   // Check for existing analysis
   const { latestAnalysis, analyzedAt } = await chrome.storage.local.get(['latestAnalysis', 'analyzedAt']);
@@ -49,12 +58,17 @@ function showSection(sectionId) {
 function displayAnalysis(analysis) {
   showSection('analysis-section');
 
-  // Set risk badge
-  const badge = document.getElementById('risk-badge');
-  badge.className = 'risk-badge';
+  // Generate unique ID for this analysis
+  currentAnalysisId = analysis.clientMessage ?
+    analysis.clientMessage.substring(0, 20) + '_' + Date.now() :
+    'analysis_' + Date.now();
 
-  const riskLabel = document.querySelector('.risk-label');
-  const riskConfidence = document.querySelector('.risk-confidence');
+  // Set compact risk badge
+  const badge = document.getElementById('risk-badge');
+  badge.className = 'risk-badge-compact';
+
+  const riskLabel = badge.querySelector('.risk-label');
+  const riskConfidence = document.getElementById('risk-confidence');
 
   switch (analysis.riskLevel) {
     case 'LIKELY_IN_SCOPE':
@@ -71,7 +85,7 @@ function displayAnalysis(analysis) {
       break;
   }
 
-  riskConfidence.textContent = `${analysis.confidenceScore}% confidence`;
+  riskConfidence.textContent = `${analysis.confidenceScore}%`;
 
   // Set reasoning
   document.getElementById('analysis-reasoning').textContent = analysis.reasoning;
@@ -79,10 +93,12 @@ function displayAnalysis(analysis) {
   // Set replies
   const repliesSection = document.getElementById('replies-section');
   const repliesContainer = document.getElementById('replies-container');
+  const replyCount = document.getElementById('reply-count');
 
   if (analysis.replies && analysis.replies.length > 0) {
     repliesSection.classList.remove('hidden');
     repliesContainer.innerHTML = analysis.replies.map(reply => createReplyCard(reply)).join('');
+    replyCount.textContent = `(${analysis.replies.length})`;
 
     // Add copy event listeners
     repliesContainer.querySelectorAll('.reply-copy-btn').forEach(btn => {
@@ -97,6 +113,9 @@ function displayAnalysis(analysis) {
 
   // Add to history
   addToHistory(analysis);
+
+  // Update history highlighting
+  updateActiveHistoryItem();
 }
 
 function createReplyCard(reply) {
@@ -194,11 +213,12 @@ function addToHistory(analysis) {
   }[analysis.riskLevel] || 'risk-low';
 
   const preview = analysis.clientMessage
-    ? analysis.clientMessage.substring(0, 50) + (analysis.clientMessage.length > 50 ? '...' : '')
+    ? analysis.clientMessage.substring(0, 40) + (analysis.clientMessage.length > 40 ? '...' : '')
     : 'Analysis result';
 
   const item = document.createElement('div');
   item.className = 'history-item';
+  item.dataset.analysisId = currentAnalysisId;
   item.innerHTML = `
     <div class="history-risk-dot ${riskClass}"></div>
     <div class="history-content">
@@ -207,7 +227,11 @@ function addToHistory(analysis) {
     </div>
   `;
 
-  item.addEventListener('click', () => displayAnalysis(analysis));
+  item.addEventListener('click', () => {
+    currentAnalysisId = item.dataset.analysisId;
+    displayAnalysisFromHistory(analysis);
+    updateActiveHistoryItem();
+  });
 
   // Insert at the beginning
   historyList.insertBefore(item, historyList.firstChild);
@@ -216,6 +240,94 @@ function addToHistory(analysis) {
   while (historyList.children.length > 10) {
     historyList.removeChild(historyList.lastChild);
   }
+
+  // Update history count badge
+  updateHistoryCount();
+}
+
+function displayAnalysisFromHistory(analysis) {
+  showSection('analysis-section');
+
+  // Set compact risk badge
+  const badge = document.getElementById('risk-badge');
+  badge.className = 'risk-badge-compact';
+
+  const riskLabel = badge.querySelector('.risk-label');
+  const riskConfidence = document.getElementById('risk-confidence');
+
+  switch (analysis.riskLevel) {
+    case 'LIKELY_IN_SCOPE':
+      badge.classList.add('risk-low');
+      riskLabel.textContent = 'Within Scope';
+      break;
+    case 'POSSIBLY_SCOPE_CREEP':
+      badge.classList.add('risk-medium');
+      riskLabel.textContent = 'Potential Scope Creep';
+      break;
+    case 'HIGH_RISK_SCOPE_CREEP':
+      badge.classList.add('risk-high');
+      riskLabel.textContent = 'Likely Outside Scope';
+      break;
+  }
+
+  riskConfidence.textContent = `${analysis.confidenceScore}%`;
+
+  // Set reasoning
+  document.getElementById('analysis-reasoning').textContent = analysis.reasoning;
+
+  // Set replies
+  const repliesSection = document.getElementById('replies-section');
+  const repliesContainer = document.getElementById('replies-container');
+  const replyCount = document.getElementById('reply-count');
+
+  if (analysis.replies && analysis.replies.length > 0) {
+    repliesSection.classList.remove('hidden');
+    repliesContainer.innerHTML = analysis.replies.map(reply => createReplyCard(reply)).join('');
+    replyCount.textContent = `(${analysis.replies.length})`;
+
+    // Add copy event listeners
+    repliesContainer.querySelectorAll('.reply-copy-btn').forEach(btn => {
+      btn.addEventListener('click', handleCopyReply);
+    });
+  } else {
+    repliesSection.classList.add('hidden');
+  }
+
+  // Set timestamp (from history, so not "Just now")
+  document.getElementById('analysis-time').textContent = 'From history';
+}
+
+function updateActiveHistoryItem() {
+  const historyList = document.getElementById('history-list');
+  historyList.querySelectorAll('.history-item').forEach(item => {
+    if (item.dataset.analysisId === currentAnalysisId) {
+      item.classList.add('active');
+    } else {
+      item.classList.remove('active');
+    }
+  });
+}
+
+function updateHistoryCount() {
+  const historyList = document.getElementById('history-list');
+  const count = historyList.querySelectorAll('.history-item').length;
+  const badge = document.getElementById('history-count');
+
+  if (count > 0) {
+    badge.textContent = count;
+    badge.classList.add('visible');
+  } else {
+    badge.classList.remove('visible');
+  }
+}
+
+function toggleHistoryRail() {
+  const rail = document.getElementById('history-rail');
+  rail.classList.toggle('collapsed');
+
+  // Save preference
+  const isOpen = !rail.classList.contains('collapsed');
+  chrome.storage.local.set({ historyRailOpen: isOpen });
 }
 
 function setupEventListeners() {
@@ -223,6 +335,10 @@ function setupEventListeners() {
   document.getElementById('refresh-btn').addEventListener('click', async () => {
     await checkAuthAndLoadData();
   });
+
+  // History rail toggle
+  document.getElementById('history-toggle').addEventListener('click', toggleHistoryRail);
+  document.getElementById('close-history').addEventListener('click', toggleHistoryRail);
 
   // Link project button
   document.getElementById('link-project-btn').addEventListener('click', async () => {
