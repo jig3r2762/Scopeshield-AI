@@ -4,7 +4,7 @@ import { useState } from 'react'
 import Link from 'next/link'
 import { signOut } from 'next-auth/react'
 import { Button } from '@/components/ui/button'
-import { Shield, LogOut, FolderOpen, FileText, Menu, X, Settings } from 'lucide-react'
+import { Shield, LogOut, FolderOpen, FileText, Menu, X, Settings, Zap } from 'lucide-react'
 
 interface DashboardNavProps {
   user: {
@@ -49,6 +49,13 @@ export function DashboardNav({ user }: DashboardNavProps) {
             >
               <FolderOpen className="h-4 w-4" />
               Projects
+            </Link>
+            <Link
+              href="/dashboard/analyze"
+              className="flex items-center gap-2 text-sm text-gray-600 hover:text-gray-900 transition-colors"
+            >
+              <Zap className="h-4 w-4" />
+              Analyze
             </Link>
             <Link
               href="/dashboard/templates"
@@ -128,6 +135,14 @@ export function DashboardNav({ user }: DashboardNavProps) {
               >
                 <FolderOpen className="h-5 w-5" />
                 Projects
+              </Link>
+              <Link
+                href="/dashboard/analyze"
+                className="flex items-center gap-3 px-2 py-3 text-gray-700 hover:bg-gray-50 rounded-md"
+                onClick={() => setMobileMenuOpen(false)}
+              >
+                <Zap className="h-5 w-5" />
+                Analyze
               </Link>
               <Link
                 href="/dashboard/templates"
