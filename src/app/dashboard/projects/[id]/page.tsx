@@ -1,11 +1,11 @@
 'use client'
 
-import { useState, useEffect, use } from 'react'
+import { useState, useEffect, useCallback, useRef, memo, use } from 'react'
 import { useRouter } from 'next/navigation'
 import Link from 'next/link'
 import { Button } from '@/components/ui/button'
 import { Textarea } from '@/components/ui/textarea'
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
+import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { Badge } from '@/components/ui/badge'
 import {
   ArrowLeft,
@@ -21,13 +21,10 @@ import {
   Trash2,
   Download,
   ClipboardCopy,
-  RotateCcw,
-  TrendingUp,
   History,
   ChevronDown,
   ChevronUp,
-  X,
-  Menu
+  X
 } from 'lucide-react'
 
 interface Reply {
@@ -101,6 +98,94 @@ function formatConfidence(score: number): { level: string; display: string } {
   return { level: 'Medium', display: `Medium (${cappedScore}%)` }
 }
 
+interface HistoryPanelProps {
+  mobile?: boolean
+  messages: Message[]
+  selectedMessageId: string | null
+  onSelectMessage: (msg: Message) => void
+  onExport: () => void
+  onClose?: () => void
+}
+
+const HistoryPanel = memo(function HistoryPanel({
+  mobile = false,
+  messages,
+  selectedMessageId,
+  onSelectMessage,
+  onExport,
+  onClose,
+}: HistoryPanelProps) {
+  return (
+    <div className={`flex flex-col h-full ${mobile ? '' : ''}`}>
+      <div className="flex items-center justify-between p-3 border-b bg-gray-50">
+        <div className="flex items-center gap-2">
+          <History className="h-4 w-4 text-gray-500" />
+          <span className="font-semibold text-sm">History</span>
+          {messages.length > 0 && (
+            <Badge variant="secondary" className="text-xs">{messages.length}</Badge>
+          )}
+        </div>
+        <div className="flex items-center gap-1">
+          {messages.length > 0 && (
+            <Button
+              variant="ghost"
+              size="sm"
+              onClick={onExport}
+              className="h-7 px-2"
+              title="Export CSV"
+            >
+              <Download className="h-3 w-3" />
+            </Button>
+          )}
+          {mobile && onClose && (
+            <Button
+              variant="ghost"
+              size="sm"
+              onClick={onClose}
+              className="h-7 px-2"
+            >
+              <X className="h-4 w-4" />
+            </Button>
+          )}
+        </div>
+      </div>
+      <div className="flex-1 overflow-y-auto p-2">
+        {messages.length === 0 ? (
+          <p className="text-center text-sm text-gray-400 py-8">No messages yet</p>
+        ) : (
+          <div className="space-y-2">
+            {messages.map((msg) => {
+              const risk = riskConfig[msg.riskLevel]
+              return (
+                <div
+                  key={msg.id}
+                  className={`p-3 rounded-lg border cursor-pointer transition-all hover:shadow-sm ${
+                    selectedMessageId === msg.id
+                      ? `${risk.bg} ${risk.border} ring-1 ring-offset-1 ring-gray-300`
+                      : 'bg-white border-gray-200 hover:border-gray-300'
+                  }`}
+                  onClick={() => onSelectMessage(msg)}
+                >
+                  <p className="text-sm line-clamp-2 mb-2">{msg.clientMessage}</p>
+                  <div className="flex items-center justify-between">
+                    <span className="text-xs text-gray-400 flex items-center gap-1">
+                      <Clock className="h-3 w-3" />
+                      {new Date(msg.createdAt).toLocaleDateString()}
+                    </span>
+                    <Badge variant={risk.variant} className="text-xs">
+                      {risk.shortLabel}
+                    </Badge>
+                  </div>
+                </div>
+              )
+            })}
+          </div>
+        )}
+      </div>
+    </div>
+  )
+})
+
 export default function ProjectPage({ params }: { params: Promise<{ id: string }> }) {
   const { id } = use(params)
   const router = useRouter()
@@ -116,12 +201,9 @@ export default function ProjectPage({ params }: { params: Promise<{ id: string }
   const [analysisExpanded, setAnalysisExpanded] = useState(true)
   const [repliesExpanded, setRepliesExpanded] = useState(true)
   const [projectInfoExpanded, setProjectInfoExpanded] = useState(false)
+  const copyTimeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null)
 
-  useEffect(() => {
-    fetchProject()
-  }, [id])
-
-  const fetchProject = async () => {
+  const fetchProject = useCallback(async () => {
     try {
       const response = await fetch(`/api/projects/${id}`)
       if (!response.ok) {
@@ -138,7 +220,34 @@ export default function ProjectPage({ params }: { params: Promise<{ id: string }
     } finally {
       setLoading(false)
     }
-  }
+  }, [id, router])
+
+  useEffect(() => {
+    fetchProject()
+  }, [fetchProject])
+
+  useEffect(() => {
+    return () => {
+      if (copyTimeoutRef.current) clearTimeout(copyTimeoutRef.current)
+    }
+  }, [])
+
+  const handleSelectMessage = useCallback((msg: Message) => {
+    setSelectedMessage(msg)
+    setAnalysisExpanded(true)
+  }, [])
+
+  const handleSelectMessageMobile = useCallback((msg: Message) => {
+    setSelectedMessage(msg)
+    setAnalysisExpanded(true)
+    setMobileHistoryOpen(false)
+  }, [])
+
+  const handleExportCSV = useCallback(() => {
+    window.open(`/api/projects/${id}/export?format=csv`, '_blank')
+  }, [id])
+
+  const handleCloseMobileHistory = useCallback(() => setMobileHistoryOpen(false), [])
 
   const handleAnalyze = async () => {
     if (!message.trim()) return
@@ -176,7 +285,8 @@ export default function ProjectPage({ params }: { params: Promise<{ id: string }
   const handleCopyReply = async (replyId: string, content: string) => {
     await navigator.clipboard.writeText(content)
     setCopiedId(replyId)
-    setTimeout(() => setCopiedId(null), 2000)
+    if (copyTimeoutRef.current) clearTimeout(copyTimeoutRef.current)
+    copyTimeoutRef.current = setTimeout(() => setCopiedId(null), 2000)
   }
 
   const handleDeleteProject = async () => {
@@ -227,7 +337,8 @@ ${selectedMessage.reasoning}${repliesText}`
 
     await navigator.clipboard.writeText(fullText)
     setCopiedId('full-analysis')
-    setTimeout(() => setCopiedId(null), 2000)
+    if (copyTimeoutRef.current) clearTimeout(copyTimeoutRef.current)
+    copyTimeoutRef.current = setTimeout(() => setCopiedId(null), 2000)
   }
 
   if (loading) {
@@ -248,82 +359,6 @@ ${selectedMessage.reasoning}${repliesText}`
       </div>
     )
   }
-
-  const HistoryPanel = ({ mobile = false }: { mobile?: boolean }) => (
-    <div className={`flex flex-col h-full ${mobile ? '' : ''}`}>
-      <div className="flex items-center justify-between p-3 border-b bg-gray-50">
-        <div className="flex items-center gap-2">
-          <History className="h-4 w-4 text-gray-500" />
-          <span className="font-semibold text-sm">History</span>
-          {project.messages.length > 0 && (
-            <Badge variant="secondary" className="text-xs">{project.messages.length}</Badge>
-          )}
-        </div>
-        <div className="flex items-center gap-1">
-          {project.messages.length > 0 && (
-            <>
-              <Button
-                variant="ghost"
-                size="sm"
-                onClick={() => handleExport('csv')}
-                className="h-7 px-2"
-                title="Export CSV"
-              >
-                <Download className="h-3 w-3" />
-              </Button>
-            </>
-          )}
-          {mobile && (
-            <Button
-              variant="ghost"
-              size="sm"
-              onClick={() => setMobileHistoryOpen(false)}
-              className="h-7 px-2"
-            >
-              <X className="h-4 w-4" />
-            </Button>
-          )}
-        </div>
-      </div>
-      <div className="flex-1 overflow-y-auto p-2">
-        {project.messages.length === 0 ? (
-          <p className="text-center text-sm text-gray-400 py-8">No messages yet</p>
-        ) : (
-          <div className="space-y-2">
-            {project.messages.map((msg) => {
-              const risk = riskConfig[msg.riskLevel]
-              return (
-                <div
-                  key={msg.id}
-                  className={`p-3 rounded-lg border cursor-pointer transition-all hover:shadow-sm ${
-                    selectedMessage?.id === msg.id
-                      ? `${risk.bg} ${risk.border} ring-1 ring-offset-1 ring-gray-300`
-                      : 'bg-white border-gray-200 hover:border-gray-300'
-                  }`}
-                  onClick={() => {
-                    setSelectedMessage(msg)
-                    setAnalysisExpanded(true)
-                    if (mobile) setMobileHistoryOpen(false)
-                  }}
-                >
-                  <p className="text-sm line-clamp-2 mb-2">{msg.clientMessage}</p>
-                  <div className="flex items-center justify-between">
-                    <span className="text-xs text-gray-400 flex items-center gap-1">
-                      <Clock className="h-3 w-3" />
-                      {new Date(msg.createdAt).toLocaleDateString()}
-                    </span>
-                    <Badge variant={risk.variant} className="text-xs">
-                      {risk.shortLabel}
-                    </Badge>
-                  </div>
-                </div>
-              )
-            })}
-          </div>
-        )}
-      </div>
-    </div>
-  )
 
   return (
     <div className="h-[calc(100vh-64px)] flex flex-col overflow-hidden">
@@ -452,7 +487,14 @@ ${selectedMessage.reasoning}${repliesText}`
         <div className="fixed inset-0 z-50 lg:hidden">
           <div className="absolute inset-0 bg-black/50" onClick={() => setMobileHistoryOpen(false)} />
           <div className="absolute left-0 top-0 bottom-0 w-80 max-w-[85vw] bg-white shadow-xl">
-            <HistoryPanel mobile />
+            <HistoryPanel
+              mobile
+              messages={project.messages}
+              selectedMessageId={selectedMessage?.id ?? null}
+              onSelectMessage={handleSelectMessageMobile}
+              onExport={handleExportCSV}
+              onClose={handleCloseMobileHistory}
+            />
           </div>
         </div>
       )}
@@ -462,7 +504,12 @@ ${selectedMessage.reasoning}${repliesText}`
         {/* Desktop History Sidebar */}
         {historyOpen && (
           <div className="hidden lg:flex w-72 flex-shrink-0 border-r bg-white flex-col">
-            <HistoryPanel />
+            <HistoryPanel
+              messages={project.messages}
+              selectedMessageId={selectedMessage?.id ?? null}
+              onSelectMessage={handleSelectMessage}
+              onExport={handleExportCSV}
+            />
           </div>
         )}
 
